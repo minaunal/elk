@@ -1,0 +1,40 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.5.1
+    container_name: elasticsearch-mina
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - elk
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.5.1
+    container_name: logstash-mina
+    ports:
+      - "5044:5044"
+      - "5045:5045"
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+      - ./sample_logs/:/sample_logs:ro
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.5.1
+    container_name: kibana-mina
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch-mina:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      - elasticsearch
+    networks:
+      - elk
+networks:
+  elk:
+    driver: bridge
+
